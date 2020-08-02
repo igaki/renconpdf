@@ -47,7 +47,7 @@ def getImages(dir_path):
 def getname_fromfile(img_):
     # イメージファイル名に含まれているユーザ名と拡張子を返す関数
 
-    img_rpd = re.sub('[0-9]+', '', img_.replace(' ', ''))  # 半角スペースと数字を削除
+    img_rpd = re.sub('[0-9]+|\s|　', '', img_)  # 半角スペース，全角スペースと数字を削除
     under = img_rpd.rfind('_') + 1  # 末尾からみた_の次の文字のindex
     period = img_rpd.rfind('.')  # 末尾から見た拡張子まで
     ext = img_rpd[period:len(img_rpd)]
@@ -112,8 +112,8 @@ if __name__ == "__main__":
     df = name_rdex(df)
     print(df)
 
-    dir_path = "./exama"
-    output_path = "./exama/output"
+    dir_path = "./cpuexamb"
+    output_path = "./cpuexamb/output"
 
     try:
         os.mkdir(output_path)
@@ -122,4 +122,4 @@ if __name__ == "__main__":
 
     images = getImages(dir_path)
     df = rename_file_sid(images, dir_path, output_path)
-    df.to_csv("cpu2020_file.csv", encoding='cp932')
+    df.to_csv("cpu2020_examb_file.csv", encoding='cp932')
