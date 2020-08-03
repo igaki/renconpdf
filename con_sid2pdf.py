@@ -6,6 +6,7 @@ from PIL import Image
 import imdirect
 import re
 import struct
+import sys
 
 # 参考
 # https://kapibara-sos.net/archives/866
@@ -125,14 +126,26 @@ def convert_dir(dir_path, dir_path_complete):
 
 
 if __name__ == "__main__":
+    args = sys.argv
+    if (len(args) != 2):
+        print("引数の数が間違っています")
+        print("`python 画像フォルダ名` と入力してください")
+        print("例: python cpuexama")
+        sys.exit()
+
     try:
-        dir_path = "./exama/output"
-        dir_path_pdf = "./exama/output/pdf"
-        dir_path_complete = "./exama/output/complete"
+        dir_base = sys.argv[1]
+        dir_path = dir_base + "/output"
+        dir_path_pdf = dir_base + "/output/pdf"
+        dir_path_complete = dir_base + "/output/complete"
         try:
             os.mkdir(dir_path_pdf)
         except FileExistsError:
-            print(dir_path_pdf+" already exists")
+            print(dir_path_pdf + " already exists")
+        except FileNotFoundError as ffe:
+            print(sys.argv[1] + "が見つかりません")
+            sys.exit()
+
         try:
             os.mkdir(dir_path_complete)
         except FileExistsError:

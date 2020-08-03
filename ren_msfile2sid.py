@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import re
+import sys
 
 
 def name_rdex(df):
@@ -107,19 +108,34 @@ def rename_file_sid(images_, dir_path, output_path):
 
 
 if __name__ == "__main__":
+    args = sys.argv
+    if (len(args) != 3):
+        print("引数の数が間違っています")
+        print("`python 名簿ファイルのcsv 画像フォルダ名` と入力してください")
+        print("例: python cpu2020.csv cpuexama")
+        sys.exit()
+
     # sidと学生名が入力された名簿
-    df = pd.read_csv('./cpu2020.csv', encoding='cp932')
-    df = name_rdex(df)
+    try:
+        df = pd.read_csv(sys.argv[1], encoding='cp932')
+        df = name_rdex(df)
+    except FileNotFoundError as ffe:
+        print(ffe)
+        print(sys.argv[1]+"が見つかりません")
+        sys.exit()
     print(df)
 
-    dir_path = "./cpuexamb"
-    output_path = "./cpuexamb/output"
+    dir_path = sys.argv[2]
+    output_path = dir_path + "/output"
 
     try:
         os.mkdir(output_path)
     except FileExistsError:
         print("output dir already exists")
+    except FileNotFoundError:
+        print(sys.argv[2] + "が見つかりません")
+        sys.exit()
 
     images = getImages(dir_path)
     df = rename_file_sid(images, dir_path, output_path)
-    df.to_csv("cpu2020_examb_file.csv", encoding='cp932')
+    df.to_csv(sys.argv[2]+".csv", encoding='cp932')
