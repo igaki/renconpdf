@@ -7,6 +7,7 @@ import imdirect
 import re
 import struct
 import sys
+import comtypes.client
 
 # 参考
 # https://kapibara-sos.net/archives/866
@@ -58,8 +59,34 @@ def move_to_complete(orig, dest):
         print("dest:"+dest)
 
 
-def convert_dir(dir_path, dir_path_complete):
-  # 指定したディレクトリ内の画像ファイルをPDFに変換してpdfフォルダに移動する
+# (-2146824090, None, ('コマンドは正常終了できませんでした。', 'Microsoft Word', 'wdmain11.chm', 36966, None))
+# エラー発生のため保留中
+def convert_word_pdf(path_, dir_path_pdf, item, ext_, dir_path_complete):
+    rep = re.compile(ext_, re.IGNORECASE)  # キャピタライズを無視して
+    fulldocpath = os.getcwd() + "\\" + path_
+    osdocpath = os.path.abspath(fulldocpath).replace('\\', '\\\\\\\\')
+    print("cwp:path_:"+path_)
+    print("cwp:osdocpath:" + osdocpath)
+    word = comtypes.client.CreateObject('Word.Application')
+    doc = word.Documents.Open(osdocpath)
+
+    save_pdf_path = re.sub(rep, '.pdf', dir_path_pdf+'\\'+item)
+    fullpdfpath = os.getcwd() + "\\" + save_pdf_path
+    ospdfpath = os.path.abspath(fullpdfpath).replace('\\', '\\\\\\\\')
+    print("cwp:pdfpath:" + ospdfpath)
+    try:
+        doc.SaveAs(save_pdf_path, FileFormat=17)  # FileFormat = 17 means pdf.
+    except comtypes.COMError as come:
+        print(come)
+    finally:
+        doc.Close()
+        word.Quit()
+    #path_complete = os.path.join(dir_path_complete, item)
+    #move_to_complete(path_, path_complete)
+
+
+def convert_dir(dir_path, dir_path_pdf, dir_path_complete):
+    # 指定したディレクトリ内の画像ファイルをPDFに変換してpdfフォルダに移動する
     # check input argument
     if os.path.isdir(dir_path):
         pdf_file_path = "{}.pdf".format(os.path.basename(dir_path))
@@ -84,6 +111,9 @@ def convert_dir(dir_path, dir_path_complete):
                 elif ext_ in [".pdf"]:  # pdf into complete dir
                     path_pdf = os.path.join(dir_path+'/pdf/', item)
                     move_to_complete(path_, path_pdf)
+                elif ext_ in [".docx"]:
+                    #convert_word_pdf(path_, dir_path_pdf, item, ext_, dir_path_complete)
+                    pass
                 else:
                     # skip non-image file
                     continue
@@ -122,7 +152,7 @@ def convert_dir(dir_path, dir_path_complete):
     #     images_.sort()
 
     # layout_ = img2pdf.get_layout_fun(params_.pagesize_)
-    #print("copying skipped files: ...")
+    # print("copying skipped files: ...")
 
 
 if __name__ == "__main__":
@@ -151,11 +181,11 @@ if __name__ == "__main__":
         except FileExistsError:
             print(dir_path_complete+" already exists")
 
-        images_ = convert_dir(dir_path, dir_path_complete)
+        images_ = convert_dir(dir_path, dir_path_pdf, dir_path_complete)
         if len(images_) == 0:
-            print("All files are converted to pdf")
+            print("All image files are converted to pdf")
         else:
-            print(str(len(images_))+" files are not converted")
+            print(str(len(images_))+" image files are not converted")
             print("Please re-convert again")
             # プログラム中でコマンド再実行しても駄目だが，プログラム自体を再実行するとだいたいいける
 
