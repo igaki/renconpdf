@@ -7,16 +7,24 @@ import imdirect
 import re
 import struct
 import sys
-import comtypes.client
+#import comtypes.client
 
 # 参考
 # https://kapibara-sos.net/archives/866
 
+#created_pdf_num = 0
+MAX_PDF_NUM = 50  # 一度に多くのPDFをconvertするとPDFが破壊されるっぽいので上限を決めておく
 
 # PDFをpdfフォルダに作成して，変換元のイメージをcompleteに移動する
 
 
 def save_pdf(path_, item, ext_, dir_path_complete):
+    #global created_pdf_num, MAX_PDF_NUM
+    # if (created_pdf_num > MAX_PDF_NUM):
+    #    print("一度に作成可能なPDFの数を超えました")
+    #    return
+    #created_pdf_num = created_pdf_num+1
+
     rep = re.compile(ext_, re.IGNORECASE)  # キャピタライズを無視して
     img_pdf_bytes = img2pdf.convert(path_)
     save_pdf_file = re.sub(rep, '.pdf', item)
@@ -31,7 +39,7 @@ def save_pdf(path_, item, ext_, dir_path_complete):
 
 
 def convert_png_jpg(path_, item, ext_, dir_path_complete):
-  # pngをjpgに変換する
+    # pngをjpgに変換する
     rep = re.compile(ext_, re.IGNORECASE)  # キャピタライズを無視して
     input_image = Image.open(path_)
     rgb_image = input_image.convert('RGB')
@@ -50,39 +58,13 @@ def convert_png_jpg(path_, item, ext_, dir_path_complete):
 
 
 def move_to_complete(orig, dest):
-  # ファイルを指定した場所に移動する
+    # ファイルを指定した場所に移動する
     try:
         os.rename(orig, dest)
     except FileExistsError as fee:
         print(fee)
         print("orig:"+orig)
         print("dest:"+dest)
-
-
-# (-2146824090, None, ('コマンドは正常終了できませんでした。', 'Microsoft Word', 'wdmain11.chm', 36966, None))
-# エラー発生のため保留中
-def convert_word_pdf(path_, dir_path_pdf, item, ext_, dir_path_complete):
-    rep = re.compile(ext_, re.IGNORECASE)  # キャピタライズを無視して
-    fulldocpath = os.getcwd() + "\\" + path_
-    osdocpath = os.path.abspath(fulldocpath).replace('\\', '\\\\\\\\')
-    print("cwp:path_:"+path_)
-    print("cwp:osdocpath:" + osdocpath)
-    word = comtypes.client.CreateObject('Word.Application')
-    doc = word.Documents.Open(osdocpath)
-
-    save_pdf_path = re.sub(rep, '.pdf', dir_path_pdf+'\\'+item)
-    fullpdfpath = os.getcwd() + "\\" + save_pdf_path
-    ospdfpath = os.path.abspath(fullpdfpath).replace('\\', '\\\\\\\\')
-    print("cwp:pdfpath:" + ospdfpath)
-    try:
-        doc.SaveAs(save_pdf_path, FileFormat=17)  # FileFormat = 17 means pdf.
-    except comtypes.COMError as come:
-        print(come)
-    finally:
-        doc.Close()
-        word.Quit()
-    #path_complete = os.path.join(dir_path_complete, item)
-    #move_to_complete(path_, path_complete)
 
 
 def convert_dir(dir_path, dir_path_pdf, dir_path_complete):
@@ -118,19 +100,22 @@ def convert_dir(dir_path, dir_path_pdf, dir_path_complete):
                     # skip non-image file
                     continue
             except img2pdf.ExifOrientationError as eoe:
-                print(eoe)
-                img_eoe = Image.open(path_)
-                print("{0}, Orientation: {1}".format(
-                    img_eoe, img_eoe._getexif().get(274)))
-                imdirect.monkey_patch()
-                img_eoe_rotated = Image.open(path_)
-                print("{0}, Orientation: {1}".format(
-                    img_eoe_rotated, img_eoe_rotated._getexif().get(274)))
-                img_eoe.close()
-                img_eoe_rotated.close()
-                print("eoe:img_pdf:" + path_)
+              # これが原因でファイルが破壊されることがあるようなのでやめておく
+                # print(eoe)
+                # img_eoe = Image.open(path_)
+                # print("{0}, Orientation: {1}".format(
+                #     img_eoe, img_eoe._getexif().get(274)))
+                # imdirect.monkey_patch()
+                # img_eoe_rotated = Image.open(path_)
+                # print("{0}, Orientation: {1}".format(
+                #     img_eoe_rotated, img_eoe_rotated._getexif().get(274)))
+                # img_eoe.close()
+                # img_eoe_rotated.close()
+                # print("eoe:img_pdf:" + path_)
+                # save_pdf(path_, item, ext_, dir_path_complete)
+                print("ExifOrientationError:" + str(eoe))
+                images_.append(path_)
 
-                save_pdf(path_, item, ext_, dir_path_complete)
             except TypeError as te:
                 print("TypeError:" + str(te))
                 images_.append(path_)
@@ -159,8 +144,8 @@ if __name__ == "__main__":
     args = sys.argv
     if (len(args) != 2):
         print("引数の数が間違っています")
-        print("`python 画像フォルダ名` と入力してください")
-        print("例: python cpuexama")
+        print("`python con_sid2pdf.py 画像フォルダ名` と入力してください")
+        print("例: python con_sid2pdf.py cpuexama")
         sys.exit()
 
     try:

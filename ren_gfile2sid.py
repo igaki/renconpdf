@@ -113,7 +113,7 @@ if __name__ == "__main__":
     if (len(args) != 3):
         print("引数の数が間違っています")
         print("`python 名簿ファイルのcsv 画像フォルダ名` と入力してください")
-        print("例: python cpu2020.csv cpuexama")
+        print("例: python ren_gfile2sid.py cpu2020.csv cpuexama")
         sys.exit()
 
     # sidと学生名が入力された名簿
