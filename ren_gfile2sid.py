@@ -93,9 +93,11 @@ def rename_file_sid(images_, dir_path, output_path):
             ren_img = df.loc[name_mask, 'sid'] + '_' + f'{num:02}' + ext
             df.loc[name_mask, 'ren_file' + str(num)] = ren_img
             ren_img_str = df.loc[name_mask, 'ren_file' + str(num)].iat[0]
+            print("ren_img_str:"+ren_img_str)
 
             img_path = os.path.join(dir_path, img)
-            ren_img_path = os.path.join(output_path, ren_img_str)
+            #ren_img_path = os.path.join(output_path, ren_img_str)
+            ren_img_path = output_path + "/" + ren_img_str
             print("img_path:" + img_path)
             print("ren_img_path:" + ren_img_path)
 
@@ -103,6 +105,8 @@ def rename_file_sid(images_, dir_path, output_path):
                 os.rename(img_path, ren_img_path)
             except FileExistsError as fee:
                 print(fee)
+            except PermissionError as pe:
+                print(pe)
 
             break
     return df
@@ -114,6 +118,7 @@ if __name__ == "__main__":
         print("引数の数が間違っています")
         print("`python 名簿ファイルのcsv 画像フォルダ名` と入力してください")
         print("例: python ren_gfile2sid.py cpu2020.csv cpuexama")
+        print("cpuexama/のように末尾に/が入っていると出力されるcsvがバグるので注意すること")
         sys.exit()
 
     # sidと学生名が入力された名簿
@@ -127,7 +132,8 @@ if __name__ == "__main__":
     print(df)
 
     dir_path = sys.argv[2]
-    output_path = dir_path + "/output"
+    output_path = os.path.join(dir_path + "/output")
+    print("output_path:"+output_path)
 
     try:
         os.mkdir(output_path)

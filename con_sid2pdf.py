@@ -26,7 +26,9 @@ def save_pdf(path_, item, ext_, dir_path_complete):
     #created_pdf_num = created_pdf_num+1
 
     rep = re.compile(ext_, re.IGNORECASE)  # キャピタライズを無視して
-    img_pdf_bytes = img2pdf.convert(path_)
+    a4inpt = (img2pdf.mm_to_pt(210), img2pdf.mm_to_pt(297))
+    layout_fun = img2pdf.get_layout_fun(a4inpt)
+    img_pdf_bytes = img2pdf.convert(path_, layout_fun=layout_fun)
     save_pdf_file = re.sub(rep, '.pdf', item)
     # print("save_pdf_file:"+item+":ext_:"+ext_+":"+save_pdf_file)
     file = open(dir_path + "/pdf/" +
@@ -123,7 +125,10 @@ def convert_dir(dir_path, dir_path_pdf, dir_path_complete):
                 print("ValueError:" + str(ve))
                 images_.append(path_)
             except struct.error as se:
-                print("struct.error"+str(se))
+                print("struct.error:"+str(se))
+                images_.append(path_)
+            except SyntaxError as sye:
+                print("SyntaxError:"+str(sye))
                 images_.append(path_)
 
         else:
